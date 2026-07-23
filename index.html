@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission M-Klasse</title>
+<meta name="theme-color" content="#0B1229">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mission M">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
+<style>
+:root{
+  --bg:#0B1229; --bg-soft:#131B3A; --bg-soft2:#182253; --panel:#1B2550; --panel-hi:#232F66;
+  --accent:#2DD4BF; --accent-dim:#164E4A; --gold:#FBBF24; --lavender:#A78BFA; --coral:#FB7185;
+  --success:#34D399; --text:#F1F5F9; --text-dim:#94A3B8; --line: rgba(148,163,184,.18);
+  --radius:20px; --radius-sm:12px;
+  --font-display:'Baloo 2',system-ui,sans-serif; --font-body:'Nunito',system-ui,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0; overscroll-behavior-y:none;}
+body{
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(45,212,191,.10), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(167,139,250,.12), transparent 50%),
+    var(--bg);
+  color:var(--text); font-family:var(--font-body); min-height:100vh; min-height:100dvh;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+  padding-top:env(safe-area-inset-top);
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 80% 15%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40% 70%, #fff, transparent),
+    radial-gradient(1px 1px at 60% 40%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 90% 80%, #fff, transparent),
+    radial-gradient(1px 1px at 25% 85%, #fff, transparent),
+    radial-gradient(1px 1px at 50% 10%, #fff, transparent);
+  background-repeat:no-repeat;
+}
+h1,h2,h3,h4,.display{font-family:var(--font-display); font-weight:700; letter-spacing:.2px;}
+button{font-family:var(--font-body); cursor:pointer;}
+:focus-visible{outline:3px solid var(--gold); outline-offset:2px; border-radius:6px;}
+.screen{display:none; position:relative; z-index:1; min-height:100vh; min-height:100dvh; padding:20px 16px calc(76px + env(safe-area-inset-bottom));}
+.screen.active{display:block;}
+.wrap{max-width:900px; margin:0 auto;}
+.btn{
+  border:none; border-radius:16px; padding:16px 22px; font-size:1.05rem; font-weight:700;
+  font-family:var(--font-display); color:#0B1229; background:var(--accent);
+  box-shadow:0 4px 0 #14958a, 0 8px 20px rgba(0,0,0,.25); transition:transform .08s ease;
+  min-height:52px; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn:active{transform:translateY(3px); box-shadow:0 1px 0 #14958a;}
+.btn.gold{background:var(--gold); box-shadow:0 4px 0 #b9820f,0 8px 20px rgba(0,0,0,.25);}
+.btn.lav{background:var(--lavender); box-shadow:0 4px 0 #7c5fe0,0 8px 20px rgba(0,0,0,.25);}
+.btn.ghost{background:transparent; color:var(--text); border:2px solid var(--line); box-shadow:none;}
+.btn.block{width:100%;}
+.btn:disabled{opacity:.4; filter:grayscale(.4); box-shadow:none; transform:none;}
+.pill{display:inline-flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-weight:800; font-size:.9rem;}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px;}
+.center{text-align:center;}
+.muted{color:var(--text-dim);}
+.row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.topbar{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+.statbar{display:flex; gap:8px; flex-wrap:wrap;}
+
+/* ---------- Loading / intro ---------- */
+#screen-loading .rocket{font-size:4.2rem; animation:float 2.4s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-14px) rotate(4deg);}}
+.title-hero{font-size:2.4rem; margin:14px 0 6px; background:linear-gradient(90deg,var(--accent),var(--lavender)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+
+/* ---------- Avatar setup ---------- */
+.avatar-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(70px,1fr)); gap:10px; margin:14px 0;}
+.avatar-opt{font-size:2rem; background:var(--panel); border:2px solid var(--line); border-radius:16px; padding:10px; text-align:center;}
+.avatar-opt.sel{border-color:var(--accent); background:var(--accent-dim);}
+.suit-grid{display:flex; gap:10px; margin:10px 0; flex-wrap:wrap;}
+.suit-opt{width:44px; height:44px; border-radius:50%; border:3px solid transparent; cursor:pointer;}
+.suit-opt.sel{border-color:#fff;}
+input[type=text]{width:100%; padding:14px; border-radius:12px; border:2px solid var(--line); background:var(--bg-soft); color:var(--text); font-size:1.05rem; font-family:var(--font-body);}
+
+/* ---------- Home / mission control ---------- */
+.hub-header{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:18px;}
+.profile-card{display:flex; align-items:center; gap:12px;}
+.profile-avatar{width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; border:3px solid var(--accent); background:var(--bg-soft);}
+.daily-ring{width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative;}
+.daily-ring svg{position:absolute; inset:0;}
+.subject-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:8px;}
+.planet-card{position:relative; border-radius:24px; padding:22px; overflow:hidden; border:1px solid var(--line); min-height:150px; display:flex; flex-direction:column; justify-content:space-between;}
+.planet-card .glow{position:absolute; width:180px; height:180px; border-radius:50%; filter:blur(40px); opacity:.35; top:-60px; right:-60px;}
+.planet-emoji{font-size:2.4rem;}
+.progress-track{background:rgba(255,255,255,.08); border-radius:999px; height:10px; overflow:hidden; margin-top:8px;}
+.progress-fill{height:100%; border-radius:999px; background:var(--accent);}
+.section-title{margin:26px 0 10px; font-size:1.15rem;}
+.quick-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px;}
+.quick-card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; display:flex; gap:12px; align-items:center;}
+
+/* ---------- World map ---------- */
+.map-header{display:flex; align-items:center; gap:12px; margin-bottom:6px;}
+.trail{position:relative; margin:30px auto; max-width:420px;}
+.trail::before{content:""; position:absolute; left:50%; top:0; bottom:0; width:4px; background:repeating-linear-gradient(to bottom, var(--lavender) 0 10px, transparent 10px 20px); transform:translateX(-50%); opacity:.5;}
+.node-row{position:relative; display:flex; margin:26px 0; z-index:1;}
+.node-row.left{justify-content:flex-start;}
+.node-row.right{justify-content:flex-end;}
+.node{
+  width:84px; height:84px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:2rem; border:4px solid var(--panel-hi); background:var(--panel); position:relative;
+}
+.node.done{background:var(--success); border-color:#1f8f6b; color:#06281c;}
+.node.current{background:var(--gold); border-color:#b9820f; animation:pulse 1.8s infinite;}
+.node.locked{opacity:.4; filter:grayscale(.6);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.5);}50%{box-shadow:0 0 0 14px rgba(251,191,36,0);}}
+.node-label{position:absolute; top:92px; width:150px; text-align:center; font-size:.82rem; font-weight:700; left:50%; transform:translateX(-50%);}
+.node-row.left .node-label{left:0; transform:none; text-align:left;}
+.node-row.right .node-label{right:0; left:auto; transform:none; text-align:right;}
+.world-block{margin-bottom:8px;}
+.world-title{font-size:1.3rem; margin:0 0 2px;}
+.locked-banner{background:var(--panel); border:1px dashed var(--line); border-radius:16px; padding:16px; text-align:center; color:var(--text-dim); margin-top:10px;}
+
+/* ---------- Mission screen ---------- */
+.mission-panel{max-width:640px; margin:0 auto;}
+.story-box{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:24px; text-align:center;}
+.story-emoji{font-size:3rem; margin-bottom:8px;}
+.explain-box{background:var(--bg-soft2); border-left:4px solid var(--accent); border-radius:12px; padding:16px 18px; margin:14px 0;}
+.progressbar-mission{height:10px; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden; margin-bottom:16px;}
+.progressbar-mission > div{height:100%; background:var(--accent); transition:width .3s ease;}
+.exercise-q{font-size:1.2rem; margin-bottom:14px; font-weight:800; font-family:var(--font-display);}
+.options{display:grid; gap:10px;}
+.opt-btn{text-align:left; background:var(--panel); border:2px solid var(--line); border-radius:14px; padding:14px 16px; font-size:1.02rem; font-weight:700; color:var(--text);}
+.opt-btn.correct{border-color:var(--success); background:rgba(52,211,153,.15);}
+.opt-btn.wrong{border-color:var(--coral); background:rgba(251,113,133,.15);}
+.opt-btn:disabled{cursor:default;}
+.feedback{margin-top:14px; padding:14px; border-radius:12px; font-weight:700;}
+.feedback.ok{background:rgba(52,211,153,.12); color:var(--success); border:1px solid rgba(52,211,153,.4);}
+.feedback.bad{background:rgba(251,113,133,.12); color:var(--coral); border:1px solid rgba(251,113,133,.4);}
+.hint-note{margin-top:6px; color:var(--text-dim); font-size:.92rem;}
+.reward-screen{text-align:center; padding:20px;}
+.reward-badge{font-size:4.4rem;}
+.reward-stats{display:flex; gap:12px; justify-content:center; margin:16px 0; flex-wrap:wrap;}
+.reward-stat{background:var(--panel); border-radius:14px; padding:14px 18px; min-width:90px;}
+
+/* ---------- Placement test ---------- */
+.pt-header{text-align:center; margin-bottom:14px;}
+
+/* ---------- Parent dashboard ---------- */
+.dash-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:16px 0;}
+.dash-stat{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; text-align:center;}
+.dash-stat .num{font-size:1.7rem; font-family:var(--font-display); color:var(--accent);}
+.subj-bar-row{margin:12px 0;}
+.badges-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(70px,1fr)); gap:10px;}
+.badge-item{text-align:center; font-size:1.8rem; background:var(--panel); border-radius:14px; padding:10px 4px;}
+.badge-item.locked{opacity:.25;}
+.reco-box{background:var(--bg-soft2); border-left:4px solid var(--gold); border-radius:12px; padding:14px 16px; margin-top:8px;}
+.roadmap-grade{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+.roadmap-grade:last-child{border-bottom:none;}
+
+/* ---------- Nav / misc ---------- */
+.backlink{background:transparent; border:none; color:var(--text-dim); font-weight:800; font-size:.95rem; padding:8px;}
+.tabbar{position:fixed; bottom:0; padding-bottom:env(safe-area-inset-bottom); left:0; right:0; background:rgba(19,27,58,.92); backdrop-filter:blur(10px); border-top:1px solid var(--line); display:flex; z-index:5;}
+.tabbar button{flex:1; background:none; border:none; color:var(--text-dim); padding:10px 4px 8px; font-size:1.4rem; display:flex; flex-direction:column; align-items:center; gap:2px;}
+.tabbar button span{font-size:.68rem; font-weight:700; font-family:var(--font-body);}
+.tabbar button.active{color:var(--accent);}
+@media print{
+  body *{visibility:hidden;}
+  #printArea, #printArea *{visibility:visible;}
+  #printArea{position:absolute; top:0; left:0; width:100%; color:#000; background:#fff;}
+  #printArea .ans{color:#666;}
+}
+#printArea{display:none;}
+@media (prefers-reduced-motion: reduce){
+  .rocket, .node.current{animation:none;}
+}
+@media (max-width:480px){
+  .title-hero{font-size:1.8rem;}
+  .node{width:70px; height:70px; font-size:1.6rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOADING / INTRO ============ -->
+<section id="screen-loading" class="screen active">
+  <div class="wrap center" style="padding-top:10vh;">
+    <div class="rocket">🚀</div>
+    <h1 class="title-hero">Mission M-Klasse</h1>
+    <p class="muted" style="max-width:420px; margin:0 auto 24px;">Reise durch fünf Sternensysteme des Wissens, sammle Sterne und werde bereit für die M-Klasse!</p>
+    <div id="loadingButtons">
+      <button class="btn gold block" style="max-width:280px;margin:0 auto 10px;" onclick="startNewProfile()">🌟 Neue Mission starten</button>
+      <button class="btn ghost block" id="continueBtn" style="max-width:280px;margin:0 auto;display:none;" onclick="continueProfile()">▶️ Mission fortsetzen</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AVATAR SETUP ============ -->
+<section id="screen-avatar" class="screen">
+  <div class="wrap" style="max-width:460px;">
+    <h2 class="center">Wer fliegt mit? 🧑‍🚀</h2>
+    <p class="muted center">Erstelle deinen Weltraum-Entdecker.</p>
+    <div class="card">
+      <label class="muted">Name des Entdeckers</label>
+      <input type="text" id="nameInput" maxlength="16" placeholder="z.B. Alex" style="margin:8px 0 16px;">
+      <label class="muted">Wähle dein Symbol</label>
+      <div class="avatar-grid" id="avatarGrid"></div>
+      <label class="muted">Wähle deine Anzugfarbe</label>
+      <div class="suit-grid" id="suitGrid"></div>
+      <button class="btn gold block" style="margin-top:18px;" onclick="finishAvatar()">Los geht's! 🚀</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOME / MISSION CONTROL ============ -->
+<section id="screen-home" class="screen">
+  <div class="wrap">
+    <div class="hub-header">
+      <div class="profile-card">
+        <div class="profile-avatar" id="homeAvatar"></div>
+        <div>
+          <div style="font-weight:800; font-size:1.2rem;" id="homeName"></div>
+          <div class="muted" style="font-size:.85rem;">Level <span id="homeLevel"></span> Entdecker</div>
+        </div>
+      </div>
+      <div class="statbar">
+        <div class="pill">⭐ <span id="statStars">0</span></div>
+        <div class="pill">🪙 <span id="statCoins">0</span></div>
+        <div class="pill">🔥 <span id="statStreak">0</span></div>
+      </div>
+    </div>
+
+    <div class="card row" style="justify-content:space-between;">
+      <div>
+        <div style="font-weight:800;">🎯 Tagesziel</div>
+        <div class="muted" style="font-size:.85rem;">XP heute: <span id="dailyXp">0</span> / <span id="dailyGoal">50</span></div>
+        <div class="progress-track" style="width:180px; margin-top:6px;"><div class="progress-fill" id="dailyFill" style="background:var(--gold);width:0%;"></div></div>
+      </div>
+      <div style="font-size:2rem;" id="dailyEmoji">🛰️</div>
+    </div>
+
+    <h3 class="section-title">Wähle dein Fach</h3>
+    <div class="subject-grid" id="subjectGrid"></div>
+
+    <h3 class="section-title">Schnellzugriff</h3>
+    <div class="quick-row">
+      <div class="quick-card" style="cursor:pointer;" onclick="openRepeat()">
+        <div style="font-size:1.8rem;">🌀</div>
+        <div><div style="font-weight:800;">Blitz-Wiederholung</div><div class="muted" style="font-size:.82rem;">Übe alte Fehler & werde stärker</div></div>
+      </div>
+      <div class="quick-card" style="cursor:pointer;" onclick="showScreen('screen-parent'); renderParent();">
+        <div style="font-size:1.8rem;">👨‍👩‍👧</div>
+        <div><div style="font-weight:800;">Eltern-Dashboard</div><div class="muted" style="font-size:.82rem;">Fortschritt & Empfehlungen</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="height:70px;"></div>
+</section>
+
+<!-- ============ WORLD MAP ============ -->
+<section id="screen-worldmap" class="screen">
+  <div class="wrap">
+    <button class="backlink" onclick="showScreen('screen-home')">← Zurück zur Zentrale</button>
+    <div class="map-header">
+      <div id="mapSubjectEmoji" style="font-size:2.2rem;"></div>
+      <div>
+        <h2 style="margin:0;" id="mapSubjectName"></h2>
+        <div class="muted" id="mapGradeLabel"></div>
+      </div>
+    </div>
+    <div class="row" id="gradeTabs" style="margin:10px 0 4px;"></div>
+    <div id="mapContent"></div>
+  </div>
+  <div style="height:40px;"></div>
+</section>
+
+<!-- ============ PLACEMENT TEST ============ -->
+<section id="screen-placement" class="screen">
+  <div class="wrap" style="max-width:560px;">
+    <div class="pt-header">
+      <div style="font-size:2.4rem;">🔭</div>
+      <h2>Einstufungstest</h2>
+      <p class="muted">Zeig mir, was du schon weißt – dann finde ich die perfekte Mission für dich!</p>
+    </div>
+    <div class="card" id="placementCard"></div>
+  </div>
+</section>
+
+<!-- ============ MISSION SCREEN ============ -->
+<section id="screen-mission" class="screen">
+  <div class="wrap mission-panel">
+    <button class="backlink" onclick="exitMission()">← Mission verlassen</button>
+    <div class="progressbar-mission"><div id="missionProgressFill" style="width:0%;"></div></div>
+    <div id="missionContent"></div>
+  </div>
+</section>
+
+<!-- ============ PARENT DASHBOARD ============ -->
+<section id="screen-parent" class="screen">
+  <div class="wrap">
+    <button class="backlink" onclick="showScreen('screen-home')">← Zurück zur Zentrale</button>
+    <h2>👨‍👩‍👧 Eltern-Dashboard</h2>
+    <p class="muted">Lernfortschritt von <span id="parentName"></span></p>
+    <div class="dash-grid" id="dashStats"></div>
+
+    <h3 class="section-title">Fortschritt pro Fach</h3>
+    <div id="dashSubjects"></div>
+
+    <h3 class="section-title">🏅 Abzeichen</h3>
+    <div class="badges-grid" id="dashBadges"></div>
+
+    <h3 class="section-title">💡 Empfehlung</h3>
+    <div class="reco-box" id="dashReco"></div>
+
+    <h3 class="section-title">🗺️ Lehrplan-Übersicht (Klasse 1–5)</h3>
+    <div class="card" id="roadmap"></div>
+
+    <h3 class="section-title">🖨️ Arbeitsblätter</h3>
+    <p class="muted">Öffne eine Mission und klicke dort auf „Arbeitsblatt drucken“, um ein druckbares Übungsblatt mit Lösungen zu erhalten.</p>
+  </div>
+  <div style="height:40px;"></div>
+</section>
+
+<!-- Bottom tab bar (shown on main screens) -->
+<div class="tabbar" id="tabbar" style="display:none;">
+  <button onclick="showScreen('screen-home')" data-tab="screen-home">🏠<span>Zentrale</span></button>
+  <button onclick="openRepeat()" data-tab="repeat">🌀<span>Wiederholen</span></button>
+  <button onclick="showScreen('screen-parent'); renderParent();" data-tab="screen-parent">👨‍👩‍👧<span>Eltern</span></button>
+</div>
+
+<div id="printArea"></div>
+<div id="iosInstallHint" style="display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:20;background:#F1F5F9;color:#0B1229;border-radius:16px;padding:14px 44px 14px 14px;box-shadow:0 10px 35px rgba(0,0,0,.35);font-weight:700;">
+  📱 Als App installieren: In Safari auf <b>Teilen</b> tippen und „Zum Home-Bildschirm“ wählen.
+  <button aria-label="Hinweis schließen" onclick="dismissInstallHint()" style="position:absolute;right:10px;top:8px;border:0;background:transparent;font-size:1.4rem;">×</button>
+</div>
+
+<script>
+/* =========================================================
+   MISSION M-KLASSE — Lernplattform
+   Datenmodell, Spiel-Engine und Inhalte
+   ========================================================= */
+
+const STORAGE_KEY = 'missionMklasse_v1';
+const AVATARS = ['🧑‍🚀','👩‍🚀','🐱‍🚀','🦊','🐧','🦁','🐼','🐸','🦄','🐙','🦖','👾'];
+const SUITS = ['#2DD4BF','#FBBF24','#A78BFA','#FB7185','#60A5FA','#34D399'];
+
+/* ---------------- CONTENT DATA ---------------- */
+const CONTENT = {
+  mathematik: {
+    label:'Mathematik', emoji:'🔢', color:'#2DD4BF',
+    grades:{
+      1:{ label:'Klasse 1', ready:true, worlds:[
+        { id:'m1w1', name:'Zahlenland', emoji:'🔢', story:'Willkommen im Zahlenland! Hier lernst du die Zahlen von 0 bis 20 kennen.',
+          missions:[
+            { id:'m1w1m1', title:'Zahlen von 0–10', emoji:'0️⃣', topic:'zahlen',
+              story:'Kommandantin Zehn braucht deine Hilfe: Die Zahlenroboter 0 bis 10 sind durcheinandergeraten!',
+              explain:'Zahlen von 0 bis 10 haben eine feste Reihenfolge: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10. Jede Zahl ist genau 1 mehr als die vorherige.',
+              exercises:[
+                {type:'mc', q:'Welche Zahl kommt nach der 6?', options:['5','7','8','6'], correct:1, hint:'Zähle einfach weiter: 6, dann...'},
+                {type:'mc', q:'Welche Zahl kommt vor der 9?', options:['10','7','8','9'], correct:2, hint:'Zähle rückwärts von 9.'},
+                {type:'input', q:'Wie viele Sterne siehst du? ⭐⭐⭐⭐⭐', answer:'5', hint:'Zähle die Sterne einzeln.'},
+              ],
+              quiz:[
+                {type:'mc', q:'Was ist die größte Zahl: 4, 9, 6?', options:['4','9','6'], correct:1},
+                {type:'input', q:'Welche Zahl liegt zwischen 3 und 5?', answer:'4'},
+                {type:'mc', q:'Welche Zahl kommt direkt nach 0?', options:['2','1','10'], correct:1},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+            { id:'m1w1m2', title:'Zahlen von 10–20', emoji:'🔟', topic:'zahlen',
+              story:'Weiter geht die Reise! Hinter dem Zahlenberg warten die Zahlen 11 bis 20.',
+              explain:'Nach der 10 geht es weiter: 11, 12, 13 ... bis 20. Die Zahlen 13–19 enden alle auf „-zehn“.',
+              exercises:[
+                {type:'mc', q:'Welche Zahl kommt nach 15?', options:['14','16','17','15'], correct:1},
+                {type:'input', q:'Wie heißt die Zahl 20 - 1?', answer:'19'},
+                {type:'mc', q:'Welche Zahl ist größer: 13 oder 18?', options:['13','18'], correct:1},
+              ],
+              quiz:[
+                {type:'input', q:'Was kommt nach 19?', answer:'20'},
+                {type:'mc', q:'Zwischen welchen Zahlen liegt 14?', options:['13 und 15','12 und 16','15 und 17'], correct:0},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+            { id:'m1w1m3', title:'Zahlen vergleichen', emoji:'⚖️', topic:'zahlen',
+              story:'Die Waagen-Wächterin testet, ob du Zahlen vergleichen kannst: größer, kleiner oder gleich?',
+              explain:'Das Zeichen > bedeutet „größer als“, < bedeutet „kleiner als“ und = bedeutet „gleich“. Die Spitze zeigt immer zur kleineren Zahl.',
+              exercises:[
+                {type:'mc', q:'Welches Zeichen passt? 7 __ 4', options:['>','<','='], correct:0},
+                {type:'mc', q:'Welches Zeichen passt? 3 __ 8', options:['>','<','='], correct:1},
+                {type:'mc', q:'Welches Zeichen passt? 6 __ 6', options:['>','<','='], correct:2},
+              ],
+              quiz:[
+                {type:'mc', q:'Was ist richtig: 9 > 5 oder 9 < 5?', options:['9 > 5','9 < 5'], correct:0},
+                {type:'mc', q:'Was ist richtig: 2 > 10 oder 2 < 10?', options:['2 > 10','2 < 10'], correct:1},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+          ]},
+        { id:'m1w2', name:'Rechenwald', emoji:'🌲', story:'Im Rechenwald wohnen die Plus- und Minus-Waldtiere. Sie zeigen dir das Addieren und Subtrahieren.',
+          missions:[
+            { id:'m1w2m1', title:'Plus bis 10', emoji:'➕', topic:'plus_minus',
+              story:'Eichhörnchen Nussi sammelt Nüsse und braucht deine Rechenkunst.',
+              explain:'Plusrechnen (Addieren) bedeutet zusammenzählen. 3 + 2 heißt: 3 Dinge und 2 weitere Dinge macht zusammen 5.',
+              exercises:[
+                {type:'input', q:'3 + 4 = ?', answer:'7'},
+                {type:'input', q:'5 + 5 = ?', answer:'10'},
+                {type:'mc', q:'2 + 6 = ?', options:['7','8','9'], correct:1},
+              ],
+              quiz:[
+                {type:'input', q:'4 + 4 = ?', answer:'8'},
+                {type:'input', q:'6 + 3 = ?', answer:'9'},
+                {type:'mc', q:'1 + 9 = ?', options:['10','11','9'], correct:0},
+              ],
+              reward:{xp:25, coins:12, stars:1} },
+            { id:'m1w2m2', title:'Minus bis 10', emoji:'➖', topic:'plus_minus',
+              story:'Fuchs Felix hat Beeren verloren. Hilf ihm herauszufinden, wie viele übrig sind.',
+              explain:'Minusrechnen (Subtrahieren) bedeutet wegnehmen. 8 - 3 heißt: von 8 Dingen werden 3 weggenommen, es bleiben 5.',
+              exercises:[
+                {type:'input', q:'8 - 3 = ?', answer:'5'},
+                {type:'input', q:'10 - 4 = ?', answer:'6'},
+                {type:'mc', q:'9 - 5 = ?', options:['3','4','5'], correct:1},
+              ],
+              quiz:[
+                {type:'input', q:'7 - 2 = ?', answer:'5'},
+                {type:'input', q:'6 - 6 = ?', answer:'0'},
+              ],
+              reward:{xp:25, coins:12, stars:1} },
+            { id:'m1w2m3', title:'Plus & Minus gemischt', emoji:'🔀', topic:'plus_minus',
+              story:'Die Waldtiere feiern ein Fest. Jetzt kommen Plus- und Minusaufgaben durcheinander!',
+              explain:'Lies die Aufgabe genau: Steht ein + oder ein - Zeichen da? Rechne dann Schritt für Schritt.',
+              exercises:[
+                {type:'input', q:'5 + 3 - 2 = ?', answer:'6'},
+                {type:'input', q:'9 - 4 + 1 = ?', answer:'6'},
+                {type:'mc', q:'7 - 3 = ?', options:['4','5','3'], correct:0},
+              ],
+              quiz:[
+                {type:'input', q:'10 - 6 + 2 = ?', answer:'6'},
+                {type:'input', q:'2 + 2 + 2 = ?', answer:'6'},
+              ],
+              reward:{xp:30, coins:15, stars:2, badge:'rechenwald_meister'} },
+          ]},
+        { id:'m1w3', name:'Formen-Tal', emoji:'🔺', story:'Im Formen-Tal leben Kreis, Dreieck, Quadrat und Rechteck.',
+          missions:[
+            { id:'m1w3m1', title:'Grundformen erkennen', emoji:'🔵', topic:'geometrie',
+              story:'Die Formen-Wächter zeigen dir Kreis, Dreieck, Quadrat und Rechteck.',
+              explain:'Ein Kreis ist rund. Ein Dreieck hat 3 Ecken. Ein Quadrat hat 4 gleich lange Seiten. Ein Rechteck hat 4 Ecken, aber unterschiedliche Seitenlängen.',
+              exercises:[
+                {type:'mc', q:'Wie viele Ecken hat ein Dreieck?', options:['2','3','4'], correct:1},
+                {type:'mc', q:'Welche Form ist rund?', options:['Kreis','Quadrat','Dreieck'], correct:0},
+                {type:'mc', q:'Wie viele Ecken hat ein Quadrat?', options:['3','4','5'], correct:1},
+              ],
+              quiz:[
+                {type:'mc', q:'Ein Rechteck hat wie viele Ecken?', options:['3','4','6'], correct:1},
+                {type:'mc', q:'Welche Form hat keine Ecken?', options:['Quadrat','Kreis','Rechteck'], correct:1},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+          ]},
+      ]},
+      2:{ label:'Klasse 2', ready:false, worldNames:['Einmaleins-Insel','Uhrzeit-Turm','Längen-Land'] },
+      3:{ label:'Klasse 3', ready:false, worldNames:['Schriftliche Rechnung','Geld-Basar','Flächen & Umfang'] },
+      4:{ label:'Klasse 4', ready:false, worldNames:['Brüche-Berge','Diagramm-Station','Großes Einmaleins'] },
+      5:{ label:'Klasse 5', ready:false, worldNames:['Dezimalzahlen-Delta','Prozent-Planet','Körper & Volumen'] },
+    }
+  },
+  deutsch: {
+    label:'Deutsch', emoji:'📚', color:'#A78BFA',
+    grades:{
+      1:{ label:'Klasse 1', ready:true, worlds:[
+        { id:'d1w1', name:'Buchstabenwald', emoji:'🔤', story:'Im Buchstabenwald wohnen alle Buchstaben des ABCs.',
+          missions:[
+            { id:'d1w1m1', title:'Laute & Buchstaben', emoji:'🅰️', topic:'buchstaben',
+              story:'Waldfee Lea zeigt dir, wie Buchstaben klingen.',
+              explain:'Jeder Buchstabe hat einen Laut. „M“ klingt wie „mmm“, „A“ klingt wie „aaa“. Zusammen ergeben Laute Wörter: M-A-U-S = Maus.',
+              exercises:[
+                {type:'mc', q:'Welcher Buchstabe ist der erste Laut in „Sonne“?', options:['S','O','N'], correct:0},
+                {type:'mc', q:'Welches Wort beginnt wie „Maus“?', options:['Baum','Mond','Tisch'], correct:1},
+                {type:'input', q:'Wie viele Buchstaben hat das Wort „Hut“?', answer:'3'},
+              ],
+              quiz:[
+                {type:'mc', q:'Welcher Laut ist am Anfang von „Fisch“?', options:['F','I','S'], correct:0},
+                {type:'input', q:'Wie viele Buchstaben hat „Ball“?', answer:'4'},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+            { id:'d1w1m2', title:'Groß- und Kleinschreibung', emoji:'🔠', topic:'rechtschreibung',
+              story:'König Groß und Zwerg Klein streiten: Wer darf ein Wort anführen?',
+              explain:'Nomen (Namenwörter wie Hund, Baum, Auto) schreibt man immer groß. Am Satzanfang schreibt man auch immer groß.',
+              exercises:[
+                {type:'mc', q:'Welches Wort ist richtig geschrieben?', options:['hund','Hund','HunD'], correct:1},
+                {type:'mc', q:'Wie beginnt ein Satz?', options:['klein','Groß'], correct:1},
+                {type:'mc', q:'Welches Wort schreibt man groß?', options:['schön','laufen','Baum'], correct:2},
+              ],
+              quiz:[
+                {type:'mc', q:'„der ball ist rund.“ – was ist falsch?', options:['ball & der', 'ist', 'rund'], correct:0},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+            { id:'d1w1m3', title:'Kurze Wörter lesen', emoji:'📖', topic:'lesen',
+              story:'Die Bücherwurm-Zwillinge laden dich zu einer kleinen Lesereise ein.',
+              explain:'Lies langsam Wort für Wort. Text: „Die Katze sitzt auf dem Baum. Sie schaut auf den Hund.“',
+              exercises:[
+                {type:'mc', q:'Wo sitzt die Katze?', options:['Auf dem Baum','Im Haus','Im Wasser'], correct:0},
+                {type:'mc', q:'Wen schaut die Katze an?', options:['Den Vogel','Den Hund','Die Maus'], correct:1},
+              ],
+              quiz:[
+                {type:'mc', q:'Was macht die Katze?', options:['Sie schläft','Sie sitzt und schaut','Sie rennt'], correct:1},
+              ],
+              reward:{xp:20, coins:10, stars:1, badge:'lesestart'} },
+          ]},
+      ]},
+      2:{ label:'Klasse 2', ready:false, worldNames:['Wortarten-Wiese','Satzbau-Stadt','Diktat-Dschungel']},
+      3:{ label:'Klasse 3', ready:false, worldNames:['Zeitformen-Zentrum','Rechtschreib-Riff','Textverständnis-Turm']},
+      4:{ label:'Klasse 4', ready:false, worldNames:['Grammatik-Galaxie','Aufsatz-Akademie','Zeichensetzung-Zone']},
+      5:{ label:'Klasse 5', ready:false, worldNames:['Textsorten-Terrasse','Wortfamilien-Werft','Präsentations-Pier']},
+    }
+  },
+  englisch: {
+    label:'Englisch', emoji:'🌍', color:'#FBBF24',
+    grades:{
+      3:{ label:'Klasse 3', ready:true, worlds:[
+        { id:'e3w1', name:'Englisch-Insel', emoji:'🏝️', story:'Welcome! Auf der Englisch-Insel triffst du Captain Ben, der nur Englisch spricht.',
+          missions:[
+            { id:'e3w1m1', title:'Greetings & Colours', emoji:'👋', topic:'wortschatz',
+              story:'Captain Ben begrüßt dich: "Hello! What is your favourite colour?"',
+              explain:'„Hello“ = Hallo, „Goodbye“ = Tschüss. Farben: red=rot, blue=blau, green=grün, yellow=gelb, black=schwarz, white=weiß.',
+              exercises:[
+                {type:'mc', q:'What colour is the sky? 🌤️', options:['red','blue','green'], correct:1},
+                {type:'mc', q:'Wie sagt man „Hallo“ auf Englisch?', options:['Goodbye','Please','Hello'], correct:2},
+                {type:'mc', q:'What colour is a banana? 🍌', options:['yellow','blue','black'], correct:0},
+              ],
+              quiz:[
+                {type:'mc', q:'What colour is grass? 🌿', options:['green','red','white'], correct:0},
+                {type:'mc', q:'„Tschüss“ auf Englisch ist...', options:['Hello','Goodbye','Yes'], correct:1},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+            { id:'e3w1m2', title:'Numbers 1–10', emoji:'🔢', topic:'wortschatz',
+              story:'Die Insel-Papageien können nur bis 10 zählen – auf Englisch!',
+              explain:'one=1, two=2, three=3, four=4, five=5, six=6, seven=7, eight=8, nine=9, ten=10.',
+              exercises:[
+                {type:'mc', q:'Was bedeutet „five“?', options:['4','5','6'], correct:1},
+                {type:'mc', q:'Wie heißt „8“ auf Englisch?', options:['seven','eight','nine'], correct:1},
+                {type:'input', q:'Schreibe die englische Zahl für 3:', answer:'three'},
+              ],
+              quiz:[
+                {type:'input', q:'Schreibe die englische Zahl für 10:', answer:'ten'},
+                {type:'mc', q:'Was bedeutet „two“?', options:['1','2','3'], correct:1},
+              ],
+              reward:{xp:20, coins:10, stars:1} },
+            { id:'e3w1m3', title:'Animals & Family', emoji:'🐶', topic:'wortschatz',
+              story:'Auf der Farm der Insel triffst du viele Tiere und Ben\'s Familie.',
+              explain:'Tiere: dog=Hund, cat=Katze, cow=Kuh, bird=Vogel. Familie: mother=Mutter, father=Vater, sister=Schwester, brother=Bruder.',
+              exercises:[
+                {type:'mc', q:'Was bedeutet „dog“?', options:['Katze','Hund','Vogel'], correct:1},
+                {type:'mc', q:'Wie heißt „Mutter“ auf Englisch?', options:['father','sister','mother'], correct:2},
+                {type:'mc', q:'Was bedeutet „cat“?', options:['Katze','Kuh','Hund'], correct:0},
+              ],
+              quiz:[
+                {type:'mc', q:'Wie heißt „Bruder“ auf Englisch?', options:['brother','sister','mother'], correct:0},
+                {type:'mc', q:'Was bedeutet „cow“?', options:['Kuh','Vogel','Hund'], correct:0},
+              ],
+              reward:{xp:20, coins:10, stars:1, badge:'island_explorer'} },
+          ]},
+      ]},
+      1:{ label:'Klasse 1', ready:false, worldNames:['(Englisch startet meist ab Klasse 3)']},
+      2:{ label:'Klasse 2', ready:false, worldNames:['(Englisch startet meist ab Klasse 3)']},
+      4:{ label:'Klasse 4', ready:false, worldNames:['Simple-Present-Strand','Fragen-Fjord','School-Life-Stadt']},
+      5:{ label:'Klasse 5', ready:false, worldNames:['Listening-Lagune','Reading-Riff','Daily-Routine-Dorf']},
+    }
+  }
+};
+
+const BADGE_INFO = {
+  rechenwald_meister:{emoji:'🌲', name:'Rechenwald-Meister'},
+  lesestart:{emoji:'📖', name:'Lesestart-Abzeichen'},
+  island_explorer:{emoji:'🏝️', name:'Island Explorer'},
+  level5:{emoji:'🚀', name:'Level 5 erreicht'},
+  streak3:{emoji:'🔥', name:'3 Tage in Folge'},
+  first_mission:{emoji:'🌟', name:'Erste Mission geschafft'},
+};
+
+/* ---------------- STATE ---------------- */
+let state = null;
+function defaultState(){
+  return {
+    name:'', avatar:'🧑‍🚀', suit:SUITS[0],
+    xp:0, coins:0, stars:0, trophies:0,
+    badges:[], completed:{}, /* missionId: {stars, quizScore} */
+    placementDone:{}, /* subject: true */
+    wrongPool:[], /* {subject, missionId, exercise} */
+    dailyDate:'', dailyXp:0, streak:0, lastPlayDate:'',
+    created:false,
+  };
+}
+let memoryStore = null;
+function storageGet(){
+  try { return localStorage.getItem(STORAGE_KEY); } catch(e) { return memoryStore; }
+}
+function storageSet(value){
+  memoryStore = value;
+  try { localStorage.setItem(STORAGE_KEY, value); return true; } catch(e) { return false; }
+}
+function save(){ storageSet(JSON.stringify(state)); }
+function load(){
+  const raw = storageGet();
+  if(raw){ try{ state = Object.assign(defaultState(), JSON.parse(raw)); }catch(e){ state = defaultState(); } }
+  else state = defaultState();
+}
+function level(){ return Math.floor(state.xp/100)+1; }
+function xpIntoLevel(){ return state.xp%100; }
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function checkDailyReset(){
+  const t = todayStr();
+  if(state.dailyDate !== t){
+    // handle streak
+    const y = new Date(); y.setDate(y.getDate()-1);
+    const yStr = y.toISOString().slice(0,10);
+    if(state.dailyDate === yStr && state.dailyXp>0){ state.streak += 1; }
+    else if(state.dailyDate !== '' && state.dailyDate !== t){ state.streak = state.dailyXp>0?1:0; }
+    state.dailyDate = t; state.dailyXp = 0;
+  }
+}
+
+/* ---------------- INIT ---------------- */
+window.addEventListener('DOMContentLoaded', ()=>{
+  load();
+  registerApp();
+  buildAvatarPickers();
+  if(state.created){
+    document.getElementById('continueBtn').style.display='inline-flex';
+  }
+});
+
+function registerApp(){
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  }
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const dismissed = sessionStorage.getItem('missionM_install_dismissed');
+  if(isiOS && !standalone && !dismissed && location.protocol.startsWith('http')){
+    setTimeout(()=>{ document.getElementById('iosInstallHint').style.display='block'; }, 1800);
+  }
+}
+function dismissInstallHint(){
+  document.getElementById('iosInstallHint').style.display='none';
+  try{ sessionStorage.setItem('missionM_install_dismissed','1'); }catch(e){}
+}
+
+function startNewProfile(){
+  state = defaultState();
+  showScreen('screen-avatar');
+}
+function continueProfile(){
+  checkDailyReset(); save();
+  showScreen('screen-home');
+  renderHome();
+}
+
+function buildAvatarPickers(){
+  const ag = document.getElementById('avatarGrid');
+  ag.innerHTML = AVATARS.map((a,i)=>`<button class="avatar-opt" data-i="${i}" onclick="pickAvatar(${i})">${a}</button>`).join('');
+  const sg = document.getElementById('suitGrid');
+  sg.innerHTML = SUITS.map((c,i)=>`<button class="suit-opt" data-i="${i}" style="background:${c}" onclick="pickSuit(${i})"></button>`).join('');
+  pickAvatar(0); pickSuit(0);
+}
+let tmpAvatar = AVATARS[0], tmpSuit = SUITS[0];
+function pickAvatar(i){
+  tmpAvatar = AVATARS[i];
+  document.querySelectorAll('.avatar-opt').forEach(el=>el.classList.remove('sel'));
+  document.querySelector(`.avatar-opt[data-i="${i}"]`).classList.add('sel');
+}
+function pickSuit(i){
+  tmpSuit = SUITS[i];
+  document.querySelectorAll('.suit-opt').forEach(el=>el.classList.remove('sel'));
+  document.querySelector(`.suit-opt[data-i="${i}"]`).classList.add('sel');
+}
+function finishAvatar(){
+  const name = document.getElementById('nameInput').value.trim();
+  state.name = name || 'Entdecker';
+  state.avatar = tmpAvatar; state.suit = tmpSuit;
+  state.created = true;
+  state.dailyDate = todayStr();
+  save();
+  showScreen('screen-home');
+  renderHome();
+}
+
+/* ---------------- SCREEN NAV ---------------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabbar = document.getElementById('tabbar');
+  tabbar.style.display = ['screen-home','screen-parent'].includes(id) ? 'flex' : 'none';
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
+  window.scrollTo(0,0);
+}
+
+/* ---------------- HOME RENDER ---------------- */
+function renderHome(){
+  checkDailyReset(); save();
+  document.getElementById('homeAvatar').textContent = state.avatar;
+  document.getElementById('homeAvatar').style.borderColor = state.suit;
+  document.getElementById('homeName').textContent = state.name;
+  document.getElementById('homeLevel').textContent = level();
+  document.getElementById('statStars').textContent = state.stars;
+  document.getElementById('statCoins').textContent = state.coins;
+  document.getElementById('statStreak').textContent = state.streak;
+  document.getElementById('dailyXp').textContent = state.dailyXp;
+  const goal = 50;
+  document.getElementById('dailyGoal').textContent = goal;
+  document.getElementById('dailyFill').style.width = Math.min(100, state.dailyXp/goal*100)+'%';
+  document.getElementById('dailyEmoji').textContent = state.dailyXp>=goal ? '🎉' : '🛰️';
+
+  const grid = document.getElementById('subjectGrid');
+  grid.innerHTML = '';
+  Object.entries(CONTENT).forEach(([key, subj])=>{
+    const {done, total} = subjectProgress(key);
+    const pct = total? Math.round(done/total*100):0;
+    const div = document.createElement('div');
+    div.className = 'planet-card';
+    div.style.background = 'linear-gradient(160deg, var(--panel), var(--bg-soft2))';
+    div.style.cursor = 'pointer';
+    div.innerHTML = `
+      <div class="glow" style="background:${subj.color}"></div>
+      <div>
+        <div class="planet-emoji">${subj.emoji}</div>
+        <div style="font-weight:800; font-size:1.15rem; margin-top:6px;">${subj.label}</div>
+        <div class="muted" style="font-size:.82rem;">${done}/${total} Missionen geschafft</div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${subj.color};"></div></div>
+    `;
+    div.onclick = ()=>enterSubject(key);
+    grid.appendChild(div);
+  });
+}
+
+function subjectProgress(key){
+  const subj = CONTENT[key];
+  let done=0, total=0;
+  Object.values(subj.grades).forEach(g=>{
+    if(!g.ready) return;
+    g.worlds.forEach(w=>w.missions.forEach(m=>{
+      total++; if(state.completed[m.id]) done++;
+    }));
+  });
+  return {done, total};
+}
+
+/* ---------------- WORLD MAP ---------------- */
+let currentSubjectKey = null, currentGrade = null;
+function enterSubject(key){
+  currentSubjectKey = key;
+  const subj = CONTENT[key];
+  const readyGrades = Object.keys(subj.grades).filter(g=>subj.grades[g].ready).map(Number);
+  currentGrade = readyGrades.length ? readyGrades[0] : Number(Object.keys(subj.grades)[0]);
+
+  if(readyGrades.length && !state.placementDone[key]){
+    openPlacement(key, readyGrades[0]);
+    return;
+  }
+  showScreen('screen-worldmap');
+  renderWorldMap();
+}
+
+function renderWorldMap(){
+  const subj = CONTENT[currentSubjectKey];
+  document.getElementById('mapSubjectEmoji').textContent = subj.emoji;
+  document.getElementById('mapSubjectName').textContent = subj.label;
+  const g = subj.grades[currentGrade];
+  document.getElementById('mapGradeLabel').textContent = g.label + (g.ready? '' : ' — bald verfügbar');
+
+  const tabs = document.getElementById('gradeTabs');
+  tabs.innerHTML = '';
+  Object.keys(subj.grades).sort((a,b)=>a-b).forEach(gnum=>{
+    const btn = document.createElement('button');
+    btn.className = 'pill'; btn.style.cursor='pointer';
+    btn.style.background = (Number(gnum)===currentGrade) ? subj.color : 'var(--panel)';
+    btn.style.color = (Number(gnum)===currentGrade) ? '#0B1229' : 'var(--text)';
+    btn.textContent = subj.grades[gnum].label;
+    btn.onclick = ()=>{ currentGrade = Number(gnum); renderWorldMap(); };
+    tabs.appendChild(btn);
+  });
+
+  const content = document.getElementById('mapContent');
+  content.innerHTML = '';
+  if(!g.ready){
+    content.innerHTML = `<div class="locked-banner">🔒 Diese Klassenstufe wird als Nächstes gebaut.<br><br>
+      Geplante Welten:<br>${(g.worldNames||[]).map(n=>'⭐ '+n).join('<br>')}
+      </div>`;
+    return;
+  }
+
+  let prevAllDone = true;
+  g.worlds.forEach((world, wi)=>{
+    const wblock = document.createElement('div');
+    wblock.className = 'world-block';
+    wblock.innerHTML = `<h3 class="world-title">${world.emoji} ${world.name}</h3><p class="muted" style="margin-top:0;">${world.story}</p>`;
+    content.appendChild(wblock);
+
+    const trail = document.createElement('div');
+    trail.className = 'trail';
+    world.missions.forEach((m, mi)=>{
+      const row = document.createElement('div');
+      row.className = 'node-row ' + (mi%2===0?'left':'right');
+      const isDone = !!state.completed[m.id];
+      const isUnlocked = prevAllDone;
+      let cls = 'node ' + (isDone?'done': isUnlocked? 'current':'locked');
+      row.innerHTML = `<div class="${cls}">${isDone?'✅':m.emoji}</div><div class="node-label">${m.title}</div>`;
+      if(isUnlocked || isDone){
+        row.querySelector('.node').style.cursor='pointer';
+        row.onclick = ()=> openMission(currentSubjectKey, m.id);
+      }
+      if(!isDone) prevAllDone = false;
+      trail.appendChild(row);
+    });
+    content.appendChild(trail);
+  });
+}
+
+/* ---------------- PLACEMENT TEST ---------------- */
+let placementCtx = null;
+function openPlacement(subjectKey, grade){
+  const subj = CONTENT[subjectKey];
+  const g = subj.grades[grade];
+  // gather up to 6 quiz questions across missions of first world
+  let pool = [];
+  g.worlds.forEach(w=>w.missions.forEach(m=> m.quiz.forEach(q=> pool.push({...q, missionId:m.id}))) );
+  pool = shuffle(pool).slice(0,6);
+  placementCtx = { subjectKey, grade, pool, idx:0, correct:0 };
+  showScreen('screen-placement');
+  renderPlacementQ();
+}
+function renderPlacementQ(){
+  const card = document.getElementById('placementCard');
+  const {pool, idx} = placementCtx;
+  if(idx >= pool.length){
+    const pct = Math.round(placementCtx.correct/pool.length*100);
+    let msg, startAt=0;
+    if(pct>=80){ msg='Super! Du kennst dich schon gut aus. Du startest direkt mit spannenderen Missionen, wiederholst aber trotzdem alles kurz.'; startAt=0; }
+    else if(pct>=40){ msg='Gut gemacht! Wir wiederholen die Grundlagen gemeinsam, damit nichts fehlt.'; startAt=0; }
+    else { msg='Kein Problem – wir fangen ganz von vorne an und bauen alles sicher auf!'; startAt=0; }
+    card.innerHTML = `
+      <div class="center">
+        <div style="font-size:2.4rem;">📊</div>
+        <h3>Ergebnis: ${pct}%</h3>
+        <p class="muted">${msg}</p>
+        <button class="btn gold block" onclick="finishPlacement()">Zur Weltkarte →</button>
+      </div>`;
+    return;
+  }
+  const q = pool[idx];
+  card.innerHTML = `<div class="muted" style="margin-bottom:8px;">Frage ${idx+1} / ${pool.length}</div>
+    <div class="exercise-q">${q.q}</div>
+    <div class="options" id="ptOptions"></div>`;
+  const optWrap = document.getElementById('ptOptions');
+  if(q.type==='mc'){
+    q.options.forEach((opt,oi)=>{
+      const b = document.createElement('button');
+      b.className='opt-btn'; b.textContent=opt;
+      b.onclick=()=>{ placementAnswer(oi===q.correct); };
+      optWrap.appendChild(b);
+    });
+  } else {
+    optWrap.innerHTML = `<input type="text" id="ptInput" placeholder="Antwort eingeben..."><button class="btn block" style="margin-top:10px;" id="ptSubmit">Prüfen</button>`;
+    document.getElementById('ptSubmit').onclick = ()=>{
+      const val = document.getElementById('ptInput').value.trim().toLowerCase();
+      placementAnswer(val === String(q.answer).toLowerCase());
+    };
+  }
+}
+function placementAnswer(ok){
+  if(ok) placementCtx.correct++;
+  placementCtx.idx++;
+  renderPlacementQ();
+}
+function finishPlacement(){
+  state.placementDone[placementCtx.subjectKey] = true;
+  save();
+  currentSubjectKey = placementCtx.subjectKey;
+  currentGrade = placementCtx.grade;
+  showScreen('screen-worldmap');
+  renderWorldMap();
+}
+
+/* ---------------- MISSION FLOW ---------------- */
+let missionCtx = null;
+function findMission(subjectKey, missionId){
+  const subj = CONTENT[subjectKey];
+  for(const g of Object.values(subj.grades)){
+    if(!g.ready) continue;
+    for(const w of g.worlds){
+      const m = w.missions.find(mm=>mm.id===missionId);
+      if(m) return {mission:m, world:w};
+    }
+  }
+  return null;
+}
+function openMission(subjectKey, missionId){
+  const found = findMission(subjectKey, missionId);
+  if(!found) return;
+  missionCtx = { subjectKey, mission: found.mission, step:'story', exIdx:0, quizIdx:0, quizCorrect:0, exerciseTotal: found.mission.exercises.length + found.mission.quiz.length };
+  showScreen('screen-mission');
+  renderMission();
+}
+function exitMission(){
+  showScreen('screen-worldmap');
+  renderWorldMap();
+}
+function updateMissionProgress(){
+  const doneCount = (missionCtx.step==='practice'? missionCtx.exIdx : missionCtx.step==='quiz'? missionCtx.mission.exercises.length+missionCtx.quizIdx : missionCtx.step==='reward'? missionCtx.exerciseTotal : 0);
+  const pct = Math.min(100, Math.round(doneCount/missionCtx.exerciseTotal*100));
+  document.getElementById('missionProgressFill').style.width = pct+'%';
+}
+function renderMission(){
+  const c = document.getElementById('missionContent');
+  const m = missionCtx.mission;
+  updateMissionProgress();
+  if(missionCtx.step==='story'){
+    c.innerHTML = `
+      <div class="story-box">
+        <div class="story-emoji">${m.emoji}</div>
+        <h2 style="margin:6px 0;">${m.title}</h2>
+        <p>${m.story}</p>
+        <button class="btn gold" onclick="missionCtx.step='explain'; renderMission();">Weiter →</button>
+      </div>`;
+  } else if(missionCtx.step==='explain'){
+    c.innerHTML = `
+      <div class="card">
+        <h3>💡 So funktioniert's</h3>
+        <div class="explain-box">${m.explain}</div>
+        <button class="btn gold block" onclick="missionCtx.step='practice'; missionCtx.exIdx=0; renderMission();">Üben starten 🎯</button>
+        <button class="btn ghost block" style="margin-top:10px;" onclick="printWorksheet()">🖨️ Arbeitsblatt drucken</button>
+      </div>`;
+  } else if(missionCtx.step==='practice'){
+    if(missionCtx.exIdx >= m.exercises.length){
+      missionCtx.step='quiz'; missionCtx.quizIdx=0; missionCtx.quizCorrect=0; renderMission(); return;
+    }
+    renderExercise(m.exercises[missionCtx.exIdx], c, false, (ok, ex)=>{
+      if(!ok) logWrong(m.id, ex);
+      setTimeout(()=>{ missionCtx.exIdx++; renderMission(); }, 1250);
+    });
+  } else if(missionCtx.step==='quiz'){
+    if(missionCtx.quizIdx >= m.quiz.length){
+      finishMission(); return;
+    }
+    renderExercise(m.quiz[missionCtx.quizIdx], c, true, (ok, ex)=>{
+      if(ok) missionCtx.quizCorrect++; else logWrong(m.id, ex);
+      setTimeout(()=>{ missionCtx.quizIdx++; renderMission(); }, 1250);
+    });
+  } else if(missionCtx.step==='reward'){
+    renderReward();
+  }
+}
+function logWrong(missionId, exercise){
+  state.wrongPool.push({subject:missionCtx.subjectKey, missionId, exercise});
+  if(state.wrongPool.length>60) state.wrongPool.shift();
+  save();
+}
+function renderExercise(ex, container, isQuiz, onAnswered){
+  const badge = isQuiz? '<span class="pill" style="background:var(--gold); color:#0B1229;">Abschlussprüfung</span>' : '<span class="pill">Übung</span>';
+  container.innerHTML = `<div style="margin-bottom:10px;">${badge}</div>
+    <div class="exercise-q">${ex.q}</div>
+    <div class="options" id="exOptions"></div>
+    <div id="exFeedback"></div>`;
+  const optWrap = document.getElementById('exOptions');
+  let answered = false;
+  function showFeedback(ok){
+    const fb = document.getElementById('exFeedback');
+    if(ok){
+      fb.innerHTML = `<div class="feedback ok">✅ Richtig! Super gemacht, ${state.name}!</div>`;
+    } else {
+      const correctText = ex.type==='mc' ? ex.options[ex.correct] : ex.answer;
+      fb.innerHTML = `<div class="feedback bad">💡 Nicht ganz! Die richtige Antwort ist: <b>${correctText}</b>${ex.hint? '<div class="hint-note">Tipp: '+ex.hint+'</div>':''}</div>`;
+    }
+  }
+  if(ex.type==='mc'){
+    ex.options.forEach((opt,oi)=>{
+      const b = document.createElement('button');
+      b.className='opt-btn'; b.textContent=opt;
+      b.onclick=()=>{
+        if(answered) return; answered=true;
+        const ok = oi===ex.correct;
+        [...optWrap.children].forEach((el,i)=>{
+          el.disabled=true;
+          if(i===ex.correct) el.classList.add('correct');
+          if(i===oi && !ok) el.classList.add('wrong');
+        });
+        showFeedback(ok);
+        onAnswered(ok, ex);
+      };
+      optWrap.appendChild(b);
+    });
+  } else {
+    optWrap.innerHTML = `<input type="text" id="exInput" autocomplete="off" placeholder="Antwort eingeben..."><button class="btn block" style="margin-top:10px;" id="exSubmit">Prüfen ✓</button>`;
+    const submit = ()=>{
+      if(answered) return; answered=true;
+      const val = document.getElementById('exInput').value.trim().toLowerCase();
+      const ok = val === String(ex.answer).toLowerCase();
+      document.getElementById('exInput').disabled=true;
+      document.getElementById('exSubmit').disabled=true;
+      showFeedback(ok);
+      onAnswered(ok, ex);
+    };
+    document.getElementById('exSubmit').onclick = submit;
+    document.getElementById('exInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+  }
+}
+function finishMission(){
+  const m = missionCtx.mission;
+  const pct = m.quiz.length? missionCtx.quizCorrect/m.quiz.length : 1;
+  const starsEarned = pct>=0.9? 3 : pct>=0.6? 2 : 1;
+  const already = state.completed[m.id];
+  state.completed[m.id] = { stars: Math.max(starsEarned, already? already.stars:0), quizScore: Math.round(pct*100) };
+  state.xp += m.reward.xp; state.dailyXp += m.reward.xp;
+  state.coins += m.reward.coins;
+  state.stars += starsEarned;
+  let newBadges = [];
+  if(!already){
+    if(Object.keys(state.completed).length===1){ state.badges.push('first_mission'); newBadges.push('first_mission'); }
+    if(m.reward.badge && !state.badges.includes(m.reward.badge)){ state.badges.push(m.reward.badge); newBadges.push(m.reward.badge); }
+  }
+  if(level()>=5 && !state.badges.includes('level5')){ state.badges.push('level5'); newBadges.push('level5'); }
+  if(state.streak>=3 && !state.badges.includes('streak3')){ state.badges.push('streak3'); newBadges.push('streak3'); }
+  missionCtx.step='reward';
+  missionCtx.starsEarned = starsEarned;
+  missionCtx.newBadges = newBadges;
+  save();
+  renderMission();
+}
+function renderReward(){
+  const c = document.getElementById('missionContent');
+  const m = missionCtx.mission;
+  c.innerHTML = `
+    <div class="reward-screen">
+      <div class="reward-badge">🏆</div>
+      <h2>Mission geschafft!</h2>
+      <p class="muted">${'⭐'.repeat(missionCtx.starsEarned)}${'☆'.repeat(3-missionCtx.starsEarned)}</p>
+      <div class="reward-stats">
+        <div class="reward-stat"><div style="font-size:1.4rem;">+${m.reward.xp}</div><div class="muted">XP</div></div>
+        <div class="reward-stat"><div style="font-size:1.4rem;">+${m.reward.coins}</div><div class="muted">🪙 Münzen</div></div>
+        <div class="reward-stat"><div style="font-size:1.4rem;">${missionCtx.starsEarned}</div><div class="muted">⭐ Sterne</div></div>
+      </div>
+      ${missionCtx.newBadges.length? `<p>Neues Abzeichen: ${missionCtx.newBadges.map(b=>BADGE_INFO[b]? BADGE_INFO[b].emoji+' '+BADGE_INFO[b].name : b).join(', ')}</p>` : ''}
+      <button class="btn gold block" style="max-width:280px;margin:16px auto 0;" onclick="exitMission()">Zur Sternenkarte →</button>
+    </div>`;
+  try{
+    confetti({particleCount:120, spread:80, origin:{y:0.6}, colors:['#2DD4BF','#FBBF24','#A78BFA']});
+  }catch(e){}
+}
+
+/* ---------------- REPEAT / WIEDERHOLUNG ---------------- */
+function openRepeat(){
+  if(state.wrongPool.length===0){
+    alert('Du hast noch keine offenen Wiederholungen – super! Übe erst ein paar Missionen.');
+    return;
+  }
+  const items = shuffle([...state.wrongPool]).slice(0,10);
+  missionCtx = { subjectKey:'wiederholung', mission:{
+    id:'repeat_'+Date.now(), title:'Blitz-Wiederholung', emoji:'🌀',
+    story:'Zeit, alte Fehler in Erfolge zu verwandeln! Diese Aufgaben hast du schon einmal gesehen.',
+    explain:'Nimm dir Zeit und denk an das, was du schon gelernt hast. Du schaffst das!',
+    exercises:[], quiz: items.map(it=>it.exercise),
+    reward:{xp:15, coins:8, stars:1}
+  }, step:'story', exIdx:0, quizIdx:0, quizCorrect:0, exerciseTotal: items.length };
+  showScreen('screen-mission');
+  renderMission();
+}
+
+/* ---------------- PRINT WORKSHEET ---------------- */
+function printWorksheet(){
+  const m = missionCtx.mission;
+  const all = [...m.exercises, ...m.quiz];
+  let html = `<h1 style="font-family:sans-serif;">${m.title} — Arbeitsblatt</h1>
+    <p style="font-family:sans-serif;">Name: ______________________&nbsp;&nbsp;&nbsp; Datum: ___________</p>
+    <ol style="font-family:sans-serif; font-size:1.1rem; line-height:2;">`;
+  all.forEach(ex=>{
+    html += `<li>${ex.q} ${ex.type==='mc'? '<br>'+ex.options.map((o,i)=>`&nbsp;&nbsp;${String.fromCharCode(97+i)}) ${o}`).join('  '):'____________________'}</li>`;
+  });
+  html += `</ol><h3 style="font-family:sans-serif;">Lösungen</h3><ol style="font-family:sans-serif;" class="ans">`;
+  all.forEach(ex=>{
+    html += `<li>${ex.type==='mc'? ex.options[ex.correct] : ex.answer}</li>`;
+  });
+  html += `</ol>`;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+/* ---------------- PARENT DASHBOARD ---------------- */
+function renderParent(){
+  document.getElementById('parentName').textContent = state.name || '–';
+  const totalMissions = Object.values(CONTENT).reduce((acc,subj)=>{
+    Object.values(subj.grades).forEach(g=>{ if(g.ready) g.worlds.forEach(w=> acc+=w.missions.length); });
+    return acc;
+  },0);
+  const doneMissions = Object.keys(state.completed).length;
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="dash-stat"><div class="num">${level()}</div><div class="muted">Level</div></div>
+    <div class="dash-stat"><div class="num">${state.xp}</div><div class="muted">Gesamt-XP</div></div>
+    <div class="dash-stat"><div class="num">${doneMissions}/${totalMissions}</div><div class="muted">Missionen</div></div>
+    <div class="dash-stat"><div class="num">${state.streak}🔥</div><div class="muted">Tage-Serie</div></div>
+  `;
+
+  const subjDiv = document.getElementById('dashSubjects');
+  subjDiv.innerHTML = '';
+  Object.entries(CONTENT).forEach(([key,subj])=>{
+    const {done,total} = subjectProgress(key);
+    const pct = total? Math.round(done/total*100):0;
+    subjDiv.innerHTML += `<div class="subj-bar-row">
+      <div class="row" style="justify-content:space-between;"><b>${subj.emoji} ${subj.label}</b><span class="muted">${done}/${total} (${pct}%)</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${subj.color};"></div></div>
+    </div>`;
+  });
+
+  const badgesDiv = document.getElementById('dashBadges');
+  badgesDiv.innerHTML = Object.entries(BADGE_INFO).map(([id,b])=>{
+    const has = state.badges.includes(id);
+    return `<div class="badge-item ${has?'':'locked'}" title="${b.name}">${b.emoji}<div style="font-size:.62rem; margin-top:2px;">${has? b.name : '???'}</div></div>`;
+  }).join('');
+
+  // Recommendation: topic with most wrong answers
+  const topicCount = {};
+  Object.entries(CONTENT).forEach(([key,subj])=>{
+    Object.values(subj.grades).forEach(g=>{ if(!g.ready) return; g.worlds.forEach(w=>w.missions.forEach(m=>{})); });
+  });
+  const wrongTopics = {};
+  state.wrongPool.forEach(it=>{
+    const found = findMission(it.subject, it.missionId);
+    if(found){ const t = found.mission.topic; wrongTopics[t] = (wrongTopics[t]||0)+1; }
+  });
+  const reco = document.getElementById('dashReco');
+  const sortedTopics = Object.entries(wrongTopics).sort((a,b)=>b[1]-a[1]);
+  if(sortedTopics.length===0){
+    reco.textContent = doneMissions===0 ? 'Noch keine Daten – lass dein Kind die erste Mission starten!' : 'Aktuell keine auffälligen Wissenslücken. Weiter so! 🎉';
+  } else {
+    reco.innerHTML = `Empfehlung: Das Thema <b>„${sortedTopics[0][0]}“</b> bereitet noch Schwierigkeiten (${sortedTopics[0][1]}× falsch beantwortet). Eine kurze „Blitz-Wiederholung“ auf der Startseite hilft, dies zu festigen.`;
+  }
+
+  // Roadmap
+  const roadmap = document.getElementById('roadmap');
+  let rmHtml = '';
+  Object.entries(CONTENT).forEach(([key,subj])=>{
+    rmHtml += `<h4 style="margin:14px 0 4px;">${subj.emoji} ${subj.label}</h4>`;
+    Object.entries(subj.grades).sort((a,b)=>a[0]-b[0]).forEach(([gnum,g])=>{
+      const status = g.ready ? `<span class="pill" style="background:var(--success); color:#06281c;">verfügbar</span>` : `<span class="pill">bald verfügbar</span>`;
+      const names = g.ready ? g.worlds.map(w=>w.name).join(', ') : (g.worldNames||[]).join(', ');
+      rmHtml += `<div class="roadmap-grade"><b style="width:70px;">${g.label}</b><span class="muted" style="flex:1;">${names}</span>${status}</div>`;
+    });
+  });
+  roadmap.innerHTML = rmHtml;
+}
+
+/* ---------------- UTIL ---------------- */
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+</script>
+</body>
+</html>
